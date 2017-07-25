@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Organizing DataSets</title>
+	<style>
+		canvas
+		{
+			border: 1px black solid;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="myCanvas"></canvas>
+	<script>
+		var data;
+		var xhttp = new XMLHttpRequest();
+		xhttp.addEventListener("load", whenLoaded); //Use a listener!
+		xhttp.open("GET", "https://www.ncdc.noaa.gov/cag/time-series/global/globe/land_ocean/ytd/12/1880-2016.json", true); 	//Asynchronous
+		xhttp.overrideMimeType("application/json");
+		xhttp.send();
+
+		var canvas = document.getElementById("myCanvas");
+		canvas.width = 640;
+		canvas.height = 480;
+		var c = canvas.getContext("2d");		
+
+		
+  		function whenLoaded(e) 
+  		{	//Careful if you use a closure!
+		 	data = JSON.parse(xhttp.responseText); 
+			//Our code playing with it below
+	    	var spacing = canvas.width/137;
+	    
+	    	var count = 1;
+	    	for(var i in data.data)
+	    	{
+		      	var year = parseInt(i);
+		      	var amount = parseFloat(data.data[i]);
+		    
+		      	c.beginPath();
+		      	c.strokeStyle='black';//revert to black when style is changed for label years
+		      	c.lineWidth=2;
+		      	c.moveTo((spacing*count) - (spacing*0.5),240);
+		      	c.lineTo((spacing*count) - (spacing*0.5),(240-(amount*150)));//multiplied to better show the effect
+		      
+		      	if((count%25) === 0)
+		      	{
+		        	c.textAlign = 'center';
+		        	c.strokeStyle='red';//colors the years with labels red
+		        	c.fillText(year, (spacing*count) - (spacing*0.5), 320);
+		      	}
+		      	c.stroke();   
+		        count++;//because i != 1, count is used to place the lines  
+    		}
+	   		/* Drawing the center line the title the heights and the ist and last dates */
+	    	c.beginPath();
+	    	c.moveTo(0,canvas.height/2);
+	    	c.lineTo(canvas.width, canvas.height/2);
+	   
+	    	var hashMarks = ["1.5", "1.0", "0.5", "0", "-0.5", "-1.0", "-1.5"];//labels for the temp
+	    	var counter = 0;//because i != 1++
+	    	for(var i = 15; i<=465; i+=75)
+	    	{//temp is increased *150 for visual reasons. 75 pixels = .5 degrees
+		      	if(i!=240)
+		      	{//i don't want a hash mark at 0
+		        	c.moveTo(0,i);
+		        	c.lineTo(5,i);
+		        	c.fillText(hashMarks[counter], 15,i)
+		      	}
+		    	counter++;
+	    	}   
+	    	c.textAlign='center';
+	    	c.font='15px calibri';
+	    	c.fillText("Global Temperature Variation from the Mean °celcius (1880-2017)", 340, 20 ,600);
+			c.stroke(); 
+	  	}
+	</script>
+</body>
+</html>
+
+
